@@ -78,7 +78,7 @@ The keys in each object will be used as headers, and the values will be used to 
 
 ## Credits
 
-Developed by LFSGD
+Developed by [LFSGD](https://lfs.gd)
 
 ## Support
 
