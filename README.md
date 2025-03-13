@@ -1,40 +1,86 @@
-Below are the steps to get your plugin running. You can also find instructions at:
+# Tabulate for Figma
 
-  https://www.figma.com/plugin-docs/plugin-quickstart-guide/
+A Figma plugin that allows you to easily populate table components with structured data. Transform your tables with custom JSON data or generate realistic dummy data with a single click.
 
-This plugin template uses Typescript and NPM, two standard tools in creating JavaScript applications.
+## Features
 
-First, download Node.js which comes with NPM. This will allow you to install TypeScript and other
-libraries. You can find the download link here:
+- **Custom Data Import**: Populate your tables with your own structured JSON data
+- **Dummy Data Generation**: Instantly fill your tables with realistic, randomized sample data
+- **Automatic Cell Detection**: Works with table structures composed of cell components
+- **Smart Row Organization**: Automatically organizes cells into rows based on their position
+- **Value Layer Targeting**: Updates text layers named "value" within cell components
 
-  https://nodejs.org/en/download/
+## Installation
 
-Next, install TypeScript using the command:
+1. Download the plugin files
+2. In Figma, go to **Plugins > Development > Import plugin from manifest...**
+3. Select the `manifest.json` file from the downloaded files
+4. The plugin will be installed and available in your development plugins
 
-  npm install -g typescript
+## Usage
 
-Finally, in the directory of your plugin, get the latest type definitions for the plugin API by running:
+### Preparing Your Table
 
-  npm install --save-dev @figma/plugin-typings
+This plugin works with tables that are structured as follows:
+- Tables composed of cell components
+- Cell components containing a text layer named "value"
+- Cells organized in rows (either as direct children or within row components)
 
-If you are familiar with JavaScript, TypeScript will look very familiar. In fact, valid JavaScript code
-is already valid Typescript code.
+### Populating with Custom Data
 
-TypeScript adds type annotations to variables. This allows code editors such as Visual Studio Code
-to provide information about the Figma API while you are writing code, as well as help catch bugs
-you previously didn't notice.
+1. Select your table or table rows in Figma
+2. Open the plugin
+3. Paste your JSON data in the provided text area
+4. Click the "Tabulate" button
+5. Your table will be populated with the provided data
 
-For more information, visit https://www.typescriptlang.org/
+### Using Dummy Data
 
-Using TypeScript requires a compiler to convert TypeScript (code.ts) into JavaScript (code.js)
-for the browser to run.
+1. Select your table or table rows in Figma
+2. Open the plugin
+3. Click the "Generate & Tabulate" button in the Dummy Data section
+4. Your table will be instantly populated with realistic dummy data
 
-We recommend writing TypeScript code using Visual Studio code:
+## Data Format
 
-1. Download Visual Studio Code if you haven't already: https://code.visualstudio.com/.
-2. Open this directory in Visual Studio Code.
-3. Compile TypeScript to JavaScript: Run the "Terminal > Run Build Task..." menu item,
-    then select "npm: watch". You will have to do this again every time
-    you reopen Visual Studio Code.
+The plugin expects data in the following JSON format:
 
-That's it! Visual Studio Code will regenerate the JavaScript file every time you save.
+```json
+[
+  {
+    "Name": "Mark Darnalds",
+    "Department": "Design",
+    "Email": "mark.darnalds@company.com",
+    "Location": "London",
+    "Access Level": "Admin",
+    "Status": "Active"
+  },
+  {
+    "Name": "Wendy Kingsley",
+    "Department": "Marketing",
+    "Email": "wendy.kingsley@company.com",
+    "Location": "New York",
+    "Access Level": "Editor",
+    "Status": "Active"
+  }
+]
+```
+
+The keys in each object will be used as headers, and the values will be used to populate the corresponding cells.
+
+## How It Works
+
+1. The plugin identifies all cell components in your selection
+2. It organizes these cells into rows based on their position
+3. It extracts the keys from your JSON data to create headers
+4. It populates each cell's "value" text layer with the corresponding data
+5. For dummy data, it generates realistic, randomized data that matches the format
+
+## Credits
+
+Developed by LFSGD
+
+## Support
+
+If you encounter any issues or have questions, please file an issue on the GitHub repository.
+
