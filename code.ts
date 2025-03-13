@@ -283,6 +283,9 @@ async function populateTableWithDummyData(rowCount: number, columnCount: number)
   // Organize cells into rows
   const rows = organizeCellsIntoRows(allCells);
   
+  // Determine actual column count based on the first row
+  const actualColumnCount = rows[0]?.length || 0;
+  
   // Get all text nodes within the cells to load fonts
   const allTextNodes: SceneNode[] = [];
   allCells.forEach(cell => {
@@ -336,6 +339,43 @@ async function populateTableWithDummyData(rowCount: number, columnCount: number)
     "Wang", "Dubois", "Hernandez", "O'Connor", "Yamamoto"
   ];
   
+  // Additional data fields for extended columns
+  const teams = [
+    "Alpha", "Beta", "Gamma", "Delta", "Epsilon", 
+    "Omega", "Phoenix", "Titan", "Nexus", "Quantum",
+    "Horizon", "Apex", "Zenith", "Pulse", "Fusion"
+  ];
+  
+  const projects = [
+    "Dashboard Redesign", "Mobile App", "API Integration", "Data Migration", "Cloud Infrastructure", 
+    "Security Audit", "UI Component Library", "Analytics Platform", "Customer Portal", "Automation Framework",
+    "Blockchain Solution", "Machine Learning Model", "IoT Platform", "AR Experience", "Payment Gateway"
+  ];
+  
+  const skills = [
+    "JavaScript", "Python", "Design Systems", "Product Strategy", "Data Analysis", 
+    "Project Management", "UX Research", "Cloud Architecture", "DevOps", "Machine Learning",
+    "Blockchain", "Mobile Development", "Cybersecurity", "AI", "Leadership"
+  ];
+  
+  const languages = [
+    "English", "Spanish", "Mandarin", "French", "German", 
+    "Japanese", "Russian", "Arabic", "Portuguese", "Hindi",
+    "Korean", "Italian", "Dutch", "Swedish", "Turkish"
+  ];
+  
+  const startDates = [
+    "Jan 2022", "Mar 2021", "Sep 2020", "Feb 2023", "Nov 2019", 
+    "Apr 2022", "Jul 2021", "Dec 2020", "May 2023", "Aug 2018",
+    "Oct 2022", "Jun 2021", "Jan 2020", "Mar 2023", "Sep 2019"
+  ];
+  
+  const phoneNumbers = [
+    "+1 (555) 123-4567", "+44 20 7946 0958", "+65 8765 4321", "+49 30 1234 5678", "+34 91 123 4567", 
+    "+33 1 23 45 67 89", "+81 3 1234 5678", "+61 2 1234 5678", "+1 (416) 123-4567", "+971 4 123 4567",
+    "+31 20 123 4567", "+46 8 123 45 67", "+852 1234 5678", "+91 22 1234 5678", "+55 11 1234-5678"
+  ];
+  
   // Shuffle arrays for randomization
   const shuffleArray = <T>(array: T[]): T[] => {
     const shuffled = [...array];
@@ -350,6 +390,12 @@ async function populateTableWithDummyData(rowCount: number, columnCount: number)
   const shuffledLastNames = shuffleArray(lastNames);
   const shuffledDepartments = shuffleArray(departments);
   const shuffledLocations = shuffleArray(locations);
+  const shuffledTeams = shuffleArray(teams);
+  const shuffledProjects = shuffleArray(projects);
+  const shuffledSkills = shuffleArray(skills);
+  const shuffledLanguages = shuffleArray(languages);
+  const shuffledStartDates = shuffleArray(startDates);
+  const shuffledPhoneNumbers = shuffleArray(phoneNumbers);
   
   // Create dummy data objects
   const dummyData: any[] = [];
@@ -374,14 +420,45 @@ async function populateTableWithDummyData(rowCount: number, columnCount: number)
     // Make "Active" status more common than others
     const status = Math.random() < 0.7 ? "Active" : statuses[Math.floor(Math.random() * statuses.length)];
     
-    dummyData.push({
+    // Additional fields for extended columns
+    const team = shuffledTeams[i % shuffledTeams.length];
+    const project = shuffledProjects[(i + 2) % shuffledProjects.length];
+    const skill = shuffledSkills[(i + 4) % shuffledSkills.length];
+    const language = shuffledLanguages[(i + 1) % shuffledLanguages.length];
+    const startDate = shuffledStartDates[(i + 5) % shuffledStartDates.length];
+    const phoneNumber = shuffledPhoneNumbers[(i + 3) % shuffledPhoneNumbers.length];
+    
+    // Create base object with standard fields
+    const dataObj: any = {
       "Name": `${firstName} ${lastName}`,
       "Department": department,
       "Email": email,
       "Location": location,
       "Access Level": accessLevel,
       "Status": status
-    });
+    };
+    
+    // Add extended fields if needed
+    if (actualColumnCount > 6) {
+      dataObj["Team"] = team;
+    }
+    if (actualColumnCount > 7) {
+      dataObj["Project"] = project;
+    }
+    if (actualColumnCount > 8) {
+      dataObj["Skill"] = skill;
+    }
+    if (actualColumnCount > 9) {
+      dataObj["Language"] = language;
+    }
+    if (actualColumnCount > 10) {
+      dataObj["Start Date"] = startDate;
+    }
+    if (actualColumnCount > 11) {
+      dataObj["Phone"] = phoneNumber;
+    }
+    
+    dummyData.push(dataObj);
   }
   
   // Shuffle the final data array for extra randomness
