@@ -18,7 +18,21 @@ type CancelMessage = {
   type: 'cancel';
 };
 
-type PluginMessage = PopulateTableMessage | GenerateDummyDataMessage | CancelMessage;
+type CheckSelectionMessage = {
+  type: 'check-selection';
+};
+
+type ShowNotificationMessage = {
+  type: 'show-notification';
+  message: string;
+};
+
+type PluginMessage = 
+  | PopulateTableMessage 
+  | GenerateDummyDataMessage 
+  | CancelMessage
+  | CheckSelectionMessage
+  | ShowNotificationMessage;
 
 // Listen for messages from the UI
 figma.ui.onmessage = async (msg: PluginMessage) => {
@@ -28,6 +42,19 @@ figma.ui.onmessage = async (msg: PluginMessage) => {
     await populateTableWithDummyData(msg.rowCount, msg.columnCount);
   } else if (msg.type === 'cancel') {
     figma.closePlugin();
+  } else if (msg.type === 'check-selection') {
+    const hasSelection = figma.currentPage.selection.length > 0;
+    
+    figma.ui.postMessage({
+      type: 'selection-result',
+      hasSelection: hasSelection
+    });
+    
+    if (!hasSelection) {
+      figma.notify('🚨 Please select table cells or rows to populate');
+    }
+  } else if (msg.type === 'show-notification') {
+    figma.notify(msg.message);
   }
 };
 
@@ -180,7 +207,7 @@ async function populateTable(data: any[]): Promise<void> {
   const selection = figma.currentPage.selection;
   
   if (selection.length === 0) {
-    figma.notify('Please select table cells or rows to populate');
+    figma.notify('🚨 Please select table cells or rows to populate');
     return;
   }
   
@@ -188,7 +215,7 @@ async function populateTable(data: any[]): Promise<void> {
   const allCells = getAllCells(selection);
   
   if (allCells.length === 0) {
-    figma.notify('No table cells found in selection');
+    figma.notify('🚨 No table cells found in selection');
     return;
   }
   
@@ -241,7 +268,7 @@ async function populateTableWithDummyData(rowCount: number, columnCount: number)
   const selection = figma.currentPage.selection;
   
   if (selection.length === 0) {
-    figma.notify('Please select table cells or rows to populate');
+    figma.notify('🚨 Please select table cells or rows to populate');
     return;
   }
   
@@ -249,7 +276,7 @@ async function populateTableWithDummyData(rowCount: number, columnCount: number)
   const allCells = getAllCells(selection);
   
   if (allCells.length === 0) {
-    figma.notify('No table cells found in selection');
+    figma.notify('🚨 No table cells found in selection');
     return;
   }
   

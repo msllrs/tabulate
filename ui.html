@@ -189,38 +189,103 @@
     const populateBtn = document.getElementById('populateBtn');
     const dummyDataBtn = document.getElementById('dummyDataBtn');
 
+    // Function to check if selection exists in Figma
+    function checkSelectionAndNotify(callback) {
+      // Send a message to check if there's a selection
+      parent.postMessage({ 
+        pluginMessage: { type: 'check-selection' } 
+      }, '*');
+      
+      // Set up a one-time listener for the response
+      window.addEventListener('message', function selectionListener(event) {
+        const message = event.data.pluginMessage;
+        if (message && message.type === 'selection-result') {
+          window.removeEventListener('message', selectionListener);
+          
+          if (message.hasSelection) {
+            // If selection exists, proceed with callback
+            callback();
+          }
+          // The notification is handled by the plugin
+        }
+      });
+    }
+
     // Populate with custom data
     populateBtn.onclick = () => {
       const jsonInput = jsonData.value.trim();
+      
+      // Check if JSON input is empty
+      if (!jsonInput) {
+        parent.postMessage({ 
+          pluginMessage: { 
+            type: 'show-notification', 
+            message: '🚨 Please paste JSON data first'
+          } 
+        }, '*');
+        return;
+      }
       
       let data;
       try {
         // Parse JSON
         data = JSON.parse(jsonInput);
+        
+        // Check if data is an array and not empty
+        if (!Array.isArray(data) || data.length === 0) {
+          parent.postMessage({ 
+            pluginMessage: { 
+              type: 'show-notification', 
+              message: '🚨 JSON must be an array of objects'
+            } 
+          }, '*');
+          return;
+        }
+        
+        // Check if first item is an object
+        if (typeof data[0] !== 'object' || data[0] === null) {
+          parent.postMessage({ 
+            pluginMessage: { 
+              type: 'show-notification', 
+              message: '🚨 JSON must contain objects with properties'
+            } 
+          }, '*');
+          return;
+        }
+        
+        // If validation passes, check selection and populate
+        checkSelectionAndNotify(() => {
+          parent.postMessage({ 
+            pluginMessage: { 
+              type: 'populate-table', 
+              data: data,
+              format: 'objects'
+            } 
+          }, '*');
+        });
+        
       } catch (e) {
-        // If parsing fails, show error
-        alert("Invalid JSON format. Please check your input.");
-        return;
+        // If parsing fails, show error via plugin notification
+        parent.postMessage({ 
+          pluginMessage: { 
+            type: 'show-notification', 
+            message: '🚨 Invalid JSON format. Please check your input.'
+          } 
+        }, '*');
       }
-      
-      parent.postMessage({ 
-        pluginMessage: { 
-          type: 'populate-table', 
-          data: data,
-          format: 'objects'
-        } 
-      }, '*');
     };
     
     // Generate and populate with dummy data
     dummyDataBtn.onclick = () => {
-      parent.postMessage({ 
-        pluginMessage: { 
-          type: 'generate-dummy-data', 
-          rowCount: 10, // Default row count
-          columnCount: 6  // Default column count
-        } 
-      }, '*');
+      checkSelectionAndNotify(() => {
+        parent.postMessage({ 
+          pluginMessage: { 
+            type: 'generate-dummy-data', 
+            rowCount: 10, // Default row count
+            columnCount: 6  // Default column count
+          } 
+        }, '*');
+      });
     };
   </script>
 </body>
