@@ -131,7 +131,7 @@
     }
 
     .action-button:disabled {
-      background-color: #e4e4e7;
+      background-color: #8b8b8b;
       cursor: not-allowed;
     }
 
@@ -351,7 +351,7 @@ Title, Skill, Language, Price, Quantity, Rating</pre>
   <div class="buttons-container">
     <button class="action-button" id="tabulateBtn">Tabulate</button>
   </div>
-  
+    
   <script>
     // Elements
     const jsonData = document.getElementById('jsonData');
@@ -371,6 +371,23 @@ Title, Skill, Language, Price, Quantity, Rating</pre>
     // Current mode
     let currentMode = 'custom'; // 'custom' or 'dummy'
     
+    // Check if button should be enabled based on current mode
+    function updateButtonState() {
+      if (currentMode === 'custom') {
+        // In custom mode, only enable if there's JSON data
+        tabulateBtn.disabled = jsonData.value.trim() === '';
+      } else {
+        // In dummy mode, always enable
+        tabulateBtn.disabled = false;
+      }
+    }
+    
+    // Initial button state
+    updateButtonState();
+    
+    // Listen for changes to the JSON data textarea
+    jsonData.addEventListener('input', updateButtonState);
+    
     // Toggle between custom and dummy data
     customDataToggle.addEventListener('click', () => {
       customDataToggle.classList.add('active');
@@ -378,6 +395,7 @@ Title, Skill, Language, Price, Quantity, Rating</pre>
       customDataPanel.classList.add('active');
       dummyDataPanel.classList.remove('active');
       currentMode = 'custom';
+      updateButtonState(); // Update button state when mode changes
     });
     
     dummyDataToggle.addEventListener('click', () => {
@@ -386,8 +404,9 @@ Title, Skill, Language, Price, Quantity, Rating</pre>
       dummyDataPanel.classList.add('active');
       customDataPanel.classList.remove('active');
       currentMode = 'dummy';
+      updateButtonState(); // Update button state when mode changes
     });
-
+  
     // Toggle custom headers input visibility
     standardDataOption.addEventListener('change', () => {
       customHeadersInput.style.display = 'none';
@@ -396,7 +415,19 @@ Title, Skill, Language, Price, Quantity, Rating</pre>
     customHeadersOption.addEventListener('change', () => {
       customHeadersInput.style.display = 'block';
     });
-
+  
+    // Function to show loading state
+    function setButtonLoading() {
+      tabulateBtn.disabled = true;
+      tabulateBtn.textContent = 'Tabulating...';
+    }
+    
+    // Function to reset button
+    function resetButton() {
+      tabulateBtn.textContent = 'Tabulate';
+      updateButtonState(); // Use the updateButtonState function to determine if it should be enabled
+    }
+  
     // Function to check if selection exists in Figma
     function checkSelectionAndNotify(callback) {
       // Send a message to check if there's a selection
@@ -413,17 +444,19 @@ Title, Skill, Language, Price, Quantity, Rating</pre>
           if (message.hasSelection) {
             // If selection exists, proceed with callback
             callback();
+          } else {
+            // Reset button if there's no selection
+            resetButton();
           }
-          // The notification is handled by the plugin
         }
       });
     }
-
+  
     // Populate with custom data
     function populateWithCustomData() {
       const jsonInput = jsonData.value.trim();
       
-      // Check if JSON input is empty
+      // Check if JSON input is empty (should not happen due to button disabling)
       if (!jsonInput) {
         parent.postMessage({ 
           pluginMessage: { 
@@ -431,6 +464,7 @@ Title, Skill, Language, Price, Quantity, Rating</pre>
             message: '🚨 Please paste JSON data first'
           } 
         }, '*');
+        resetButton();
         return;
       }
       
@@ -447,6 +481,7 @@ Title, Skill, Language, Price, Quantity, Rating</pre>
               message: '🚨 JSON must be an array of objects'
             } 
           }, '*');
+          resetButton();
           return;
         }
         
@@ -458,6 +493,7 @@ Title, Skill, Language, Price, Quantity, Rating</pre>
               message: '🚨 JSON must contain objects with properties'
             } 
           }, '*');
+          resetButton();
           return;
         }
         
@@ -480,6 +516,7 @@ Title, Skill, Language, Price, Quantity, Rating</pre>
             message: '🚨 Invalid JSON format. Please check your input.'
           } 
         }, '*');
+        resetButton();
       }
     }
     
@@ -500,6 +537,7 @@ Title, Skill, Language, Price, Quantity, Rating</pre>
                 message: '🚨 Please enter column headers'
               } 
             }, '*');
+            resetButton();
             return;
           }
           
@@ -513,6 +551,7 @@ Title, Skill, Language, Price, Quantity, Rating</pre>
                 message: '🚨 Please enter valid column headers'
               } 
             }, '*');
+            resetButton();
             return;
           }
           
@@ -539,6 +578,8 @@ Title, Skill, Language, Price, Quantity, Rating</pre>
     
     // Unified tabulate button handler
     tabulateBtn.addEventListener('click', () => {
+      setButtonLoading();
+      
       if (currentMode === 'custom') {
         populateWithCustomData();
       } else {
@@ -546,14 +587,33 @@ Title, Skill, Language, Price, Quantity, Rating</pre>
       }
     });
     
+    // Add a listener for messages from the plugin
+    window.addEventListener('message', (event) => {
+      const message = event.data.pluginMessage;
+      if (message) {
+        if (message.type === 'selection-result' && !message.hasSelection) {
+          // Reset button if there's no selection
+          resetButton();
+        } else if (message.type === 'operation-complete') {
+          // Reset button when operation is complete
+          resetButton();
+        }
+      }
+    });
+    
     // Fun hover effect for the button
     tabulateBtn.addEventListener('mouseover', function() {
-      this.textContent = '(╯°□°)╯︵ ┻━┻';
+      if (!this.disabled) {
+        this.textContent = '(╯°□°)╯︵ ┻━┻';
+      }
     });
     
     tabulateBtn.addEventListener('mouseout', function() {
-      this.textContent = 'Tabulate';
+      if (!this.disabled) {
+        this.textContent = 'Tabulate';
+      }
     });
-  </script>
+  </script>  
+  
 </body>
 </html>
