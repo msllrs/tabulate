@@ -1,5 +1,5 @@
 // Show the plugin UI
-figma.showUI(__html__, { width: 450, height: 550 });
+figma.showUI(__html__, { width: 420, height: 540 });
 
 // Message handler types
 type PopulateTableMessage = {

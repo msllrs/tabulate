@@ -22,7 +22,7 @@
 
     .section {
       padding: 16px;
-      border-bottom: 1px solid #e4e4e7;
+
     }
 
     .section-header {
@@ -236,6 +236,49 @@
       border-radius: 4px;
       border: 1px solid #e4e4e7;
     }
+
+    .toggle-container {
+      display: flex;
+      margin: 16px 0;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid #e4e4e7;
+      padding: 1px;
+      background-color: #f4f4f5;
+      height: 36px;
+    }
+
+    .toggle-option {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 4px;
+      color: #71717a;
+      border: 1px solid transparent;
+      box-sizing: border-box;
+    }
+
+    .toggle-option:hover {
+      color: #18181b;
+    }
+
+    .toggle-option.active {
+      background-color: #ffffff;
+      color: #18181b;
+      border-color: #d4d4d9;
+    }
+
+    .content-panel {
+      display: none;
+    }
+
+    .content-panel.active {
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -246,11 +289,19 @@
         <span class="section-subtitle">Transform your tables with custom structured data.</span>
       </div>
 
-      <textarea id="jsonData" placeholder='Paste your JSON data here'></textarea>
-      
-      <div class="example">
-        <div class="example-title">Example format:</div>
-        <pre>[
+      <!-- Toggle Switch -->
+      <div class="toggle-container">
+        <div class="toggle-option active" id="custom-data-toggle">Custom data</div>
+        <div class="toggle-option" id="dummy-data-toggle">Dummy data</div>
+      </div>
+
+      <!-- Custom Data Panel -->
+      <div class="content-panel active" id="custom-data-panel">
+        <textarea id="jsonData" placeholder='Paste your JSON data here'></textarea>
+        
+        <div class="example">
+          <div class="example-title">Example format:</div>
+          <pre>[
   {
     "Name": "Mark Darnalds",
     "Department": "Design",
@@ -260,67 +311,82 @@
     "Status": "Active"
   }
 ]</pre>
-      </div>
-    </div>
-    
-    <div class="section">
-      <div class="section-header">
-        <span class="section-title">Dummy data</span>
-        <span class="section-subtitle">Instantly fill your table with realistic sample data.</span>
+        </div>
       </div>
       
-      <div class="dummy-data-controls">
-        <div class="dummy-data-option">
-          <input type="radio" id="standard-data" name="dummy-data-type" value="standard" checked>
-          <label for="standard-data">Standard data</label>
-        </div>
-        
-        <div class="dummy-data-option">
-          <input type="radio" id="custom-headers" name="dummy-data-type" value="custom">
-          <label for="custom-headers">Custom headers</label>
-        </div>
-        
-        <div id="custom-headers-input" class="input-group" style="display: none;">
-          <label class="input-label" for="header-names">Enter column headers (comma-separated)</label>
-          <input type="text" id="header-names" placeholder="Name, Email, Department, etc">
+      <!-- Dummy Data Panel -->
+      <div class="content-panel" id="dummy-data-panel">
+        <div class="dummy-data-controls">
+          <div class="dummy-data-option">
+            <input type="radio" id="standard-data" name="dummy-data-type" value="standard" checked>
+            <label for="standard-data">Standard data</label>
+          </div>
           
-          <div class="example">
-            <div class="example-title">Recognized header types:</div>
-            <pre>Name, Email, Phone, Department, Location, Status, 
+          <div class="dummy-data-option">
+            <input type="radio" id="custom-headers" name="dummy-data-type" value="custom">
+            <label for="custom-headers">Custom headers</label>
+          </div>
+          
+          <div id="custom-headers-input" class="input-group" style="display: none;">
+            <label class="input-label" for="header-names">Enter column headers (comma-separated)</label>
+            <input type="text" id="header-names" placeholder="Name, Email, Department, etc">
+            
+            <div class="example">
+              <div class="example-title">Recognized header types:</div>
+              <pre>Name, Email, Phone, Department, Location, Status, 
 Date, Role, Team, Project, ID, Address, Company,
 Title, Skill, Language, Price, Quantity, Rating</pre>
+            </div>
+          </div>
+          
+          <div class="row-count">
+            <label for="row-count">Number of rows:</label>
+            <input type="number" id="row-count" value="10" min="1" max="100">
           </div>
         </div>
-        
-        <div class="row-count">
-          <label for="row-count">Number of rows:</label>
-          <input type="number" id="row-count" value="10" min="1" max="100">
-        </div>
-      </div>
-      
-      <div class="button-row" style="margin-top: 16px;">
-        <button class="secondary-button" id="dummyDataBtn">Generate & Tabulate</button>
       </div>
     </div>
   </div>
 
   <div class="buttons-container">
-    <button class="action-button" id="populateBtn" 
-      onmouseover="this.textContent='(╯°□°)╯︵ ┻━┻'" 
-      onmouseout="this.textContent='Tabulate'">Tabulate</button>
+    <button class="action-button" id="tabulateBtn">Tabulate</button>
   </div>
   
-
   <script>
     // Elements
     const jsonData = document.getElementById('jsonData');
-    const populateBtn = document.getElementById('populateBtn');
-    const dummyDataBtn = document.getElementById('dummyDataBtn');
+    const tabulateBtn = document.getElementById('tabulateBtn');
     const standardDataOption = document.getElementById('standard-data');
     const customHeadersOption = document.getElementById('custom-headers');
     const customHeadersInput = document.getElementById('custom-headers-input');
     const headerNamesInput = document.getElementById('header-names');
     const rowCountInput = document.getElementById('row-count');
+    
+    // Toggle elements
+    const customDataToggle = document.getElementById('custom-data-toggle');
+    const dummyDataToggle = document.getElementById('dummy-data-toggle');
+    const customDataPanel = document.getElementById('custom-data-panel');
+    const dummyDataPanel = document.getElementById('dummy-data-panel');
+    
+    // Current mode
+    let currentMode = 'custom'; // 'custom' or 'dummy'
+    
+    // Toggle between custom and dummy data
+    customDataToggle.addEventListener('click', () => {
+      customDataToggle.classList.add('active');
+      dummyDataToggle.classList.remove('active');
+      customDataPanel.classList.add('active');
+      dummyDataPanel.classList.remove('active');
+      currentMode = 'custom';
+    });
+    
+    dummyDataToggle.addEventListener('click', () => {
+      dummyDataToggle.classList.add('active');
+      customDataToggle.classList.remove('active');
+      dummyDataPanel.classList.add('active');
+      customDataPanel.classList.remove('active');
+      currentMode = 'dummy';
+    });
 
     // Toggle custom headers input visibility
     standardDataOption.addEventListener('change', () => {
@@ -354,7 +420,7 @@ Title, Skill, Language, Price, Quantity, Rating</pre>
     }
 
     // Populate with custom data
-    populateBtn.onclick = () => {
+    function populateWithCustomData() {
       const jsonInput = jsonData.value.trim();
       
       // Check if JSON input is empty
@@ -415,10 +481,10 @@ Title, Skill, Language, Price, Quantity, Rating</pre>
           } 
         }, '*');
       }
-    };
+    }
     
     // Generate and populate with dummy data
-    dummyDataBtn.onclick = () => {
+    function populateWithDummyData() {
       checkSelectionAndNotify(() => {
         // Get row count
         const rowCount = parseInt(rowCountInput.value, 10) || 10;
@@ -469,7 +535,25 @@ Title, Skill, Language, Price, Quantity, Rating</pre>
           }, '*');
         }
       });
-    };
+    }
+    
+    // Unified tabulate button handler
+    tabulateBtn.addEventListener('click', () => {
+      if (currentMode === 'custom') {
+        populateWithCustomData();
+      } else {
+        populateWithDummyData();
+      }
+    });
+    
+    // Fun hover effect for the button
+    tabulateBtn.addEventListener('mouseover', function() {
+      this.textContent = '(╯°□°)╯︵ ┻━┻';
+    });
+    
+    tabulateBtn.addEventListener('mouseout', function() {
+      this.textContent = 'Tabulate';
+    });
   </script>
 </body>
 </html>
