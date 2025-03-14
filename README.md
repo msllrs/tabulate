@@ -1,4 +1,4 @@
-# Tabulate for Figma
+# 🧮 Tabulate for Figma
 
 A Figma plugin that allows you to easily populate table components with structured data. Transform your tables with custom JSON data or generate realistic dummy data with a single click.
 

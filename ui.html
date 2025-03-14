@@ -56,6 +56,26 @@
       box-sizing: border-box;
     }
 
+    input[type="text"] {
+      width: 100%;
+      font-family: 'Geist Mono', 'Menlo', 'Monaco', 'Courier New', monospace;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #e4e4e7;
+      margin-bottom: 12px;
+      box-sizing: border-box;
+    }
+
+    .input-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 4px;
+      color: #18181b;
+    }
+
     .example {
       font-weight: 500;
       background-color: #f4f4f5;
@@ -137,6 +157,85 @@
       font-weight: 500;
       color: #18181b;
     }
+
+    .dummy-data-controls {
+      margin-top: 12px;
+    }
+
+    .dummy-data-option {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .dummy-data-option input[type="radio"] {
+      margin-bottom: 2px;
+      margin-right: 6px;
+      appearance: none;
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 1px solid #d6d6d9;
+      outline: none;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .dummy-data-option input[type="radio"]:checked {
+      border: 1px solid #18181b;
+    }
+
+    .dummy-data-option input[type="radio"]:checked:after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #18181b;
+    }
+
+    .dummy-data-option label {
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .input-group {
+      margin-top: 8px;
+      margin-bottom: 12px;
+    }
+
+    .input-hint {
+      font-size: 11px;
+      color: #71717a;
+      margin-top: 4px;
+      margin-bottom: 8px;
+    }
+
+    .row-count {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .row-count label {
+      font-size: 12px;
+      font-weight: 500;
+      flex: 1;
+    }
+
+    .row-count input {
+      width: 80px;
+      padding: 6px;
+      font-size: 12px;
+      border-radius: 4px;
+      border: 1px solid #e4e4e7;
+    }
   </style>
 </head>
 <body>
@@ -170,7 +269,36 @@
         <span class="section-subtitle">Instantly fill your table with realistic sample data.</span>
       </div>
       
-      <div class="button-row">
+      <div class="dummy-data-controls">
+        <div class="dummy-data-option">
+          <input type="radio" id="standard-data" name="dummy-data-type" value="standard" checked>
+          <label for="standard-data">Standard data</label>
+        </div>
+        
+        <div class="dummy-data-option">
+          <input type="radio" id="custom-headers" name="dummy-data-type" value="custom">
+          <label for="custom-headers">Custom headers</label>
+        </div>
+        
+        <div id="custom-headers-input" class="input-group" style="display: none;">
+          <label class="input-label" for="header-names">Enter column headers (comma-separated)</label>
+          <input type="text" id="header-names" placeholder="Name, Email, Department, etc">
+          
+          <div class="example">
+            <div class="example-title">Recognized header types:</div>
+            <pre>Name, Email, Phone, Department, Location, Status, 
+Date, Role, Team, Project, ID, Address, Company,
+Title, Skill, Language, Price, Quantity, Rating</pre>
+          </div>
+        </div>
+        
+        <div class="row-count">
+          <label for="row-count">Number of rows:</label>
+          <input type="number" id="row-count" value="10" min="1" max="100">
+        </div>
+      </div>
+      
+      <div class="button-row" style="margin-top: 16px;">
         <button class="secondary-button" id="dummyDataBtn">Generate & Tabulate</button>
       </div>
     </div>
@@ -188,6 +316,20 @@
     const jsonData = document.getElementById('jsonData');
     const populateBtn = document.getElementById('populateBtn');
     const dummyDataBtn = document.getElementById('dummyDataBtn');
+    const standardDataOption = document.getElementById('standard-data');
+    const customHeadersOption = document.getElementById('custom-headers');
+    const customHeadersInput = document.getElementById('custom-headers-input');
+    const headerNamesInput = document.getElementById('header-names');
+    const rowCountInput = document.getElementById('row-count');
+
+    // Toggle custom headers input visibility
+    standardDataOption.addEventListener('change', () => {
+      customHeadersInput.style.display = 'none';
+    });
+    
+    customHeadersOption.addEventListener('change', () => {
+      customHeadersInput.style.display = 'block';
+    });
 
     // Function to check if selection exists in Figma
     function checkSelectionAndNotify(callback) {
@@ -278,13 +420,54 @@
     // Generate and populate with dummy data
     dummyDataBtn.onclick = () => {
       checkSelectionAndNotify(() => {
-        parent.postMessage({ 
-          pluginMessage: { 
-            type: 'generate-dummy-data', 
-            rowCount: 10, // Default row count
-            columnCount: 12  // Support up to 12 columns
-          } 
-        }, '*');
+        // Get row count
+        const rowCount = parseInt(rowCountInput.value, 10) || 10;
+        
+        // Check if using custom headers
+        if (customHeadersOption.checked) {
+          const headerNamesStr = headerNamesInput.value.trim();
+          
+          if (!headerNamesStr) {
+            parent.postMessage({ 
+              pluginMessage: { 
+                type: 'show-notification', 
+                message: '🚨 Please enter column headers'
+              } 
+            }, '*');
+            return;
+          }
+          
+          // Parse headers (trim whitespace from each)
+          const headers = headerNamesStr.split(',').map(header => header.trim());
+          
+          if (headers.length === 0) {
+            parent.postMessage({ 
+              pluginMessage: { 
+                type: 'show-notification', 
+                message: '🚨 Please enter valid column headers'
+              } 
+            }, '*');
+            return;
+          }
+          
+          // Send headers to plugin
+          parent.postMessage({ 
+            pluginMessage: { 
+              type: 'generate-custom-dummy-data', 
+              headers: headers,
+              rowCount: rowCount
+            } 
+          }, '*');
+        } else {
+          // Use standard dummy data
+          parent.postMessage({ 
+            pluginMessage: { 
+              type: 'generate-dummy-data', 
+              rowCount: rowCount,
+              columnCount: 12  // Support up to 12 columns
+            } 
+          }, '*');
+        }
       });
     };
   </script>
